@@ -80,10 +80,10 @@ private:
   std::vector<double> hw_commands_;
   std::vector<double> hw_states_;
 
-//   // SDK related members
+  // SDK related members
   std::shared_ptr<fsuservo::FSUS_Protocol> protocol_;
   std::vector<std::shared_ptr<fsuservo::FSUS_Servo>> servos_;
-  std::string port_name_;
+  std::string usb_port_;
   uint32_t baud_rate_;
 };
 

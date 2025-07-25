@@ -14,6 +14,7 @@
 
 #include "include/dof6robot_hardware_interface.hpp"
 
+#include <unistd.h>
 #include <chrono>
 #include <cmath>
 #include <iomanip>
@@ -22,6 +23,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <libusb-1.0/libusb.h>
 
 #include "hardware_interface/types/hardware_interface_type_values.hpp"
 #include "rclcpp/rclcpp.hpp"
@@ -40,8 +42,11 @@ hardware_interface::CallbackReturn RobotHardware::on_init(
   clock_ = std::make_shared<rclcpp::Clock>(rclcpp::Clock());
 
   // Get serial port parameters
-  port_name_ = info_.hardware_parameters["port_name"];
+  usb_port_ = info_.hardware_parameters["usb_port"];
   baud_rate_ = std::stoi(info_.hardware_parameters["baud_rate"]);
+
+  // initialize USB
+  libusb_init(NULL);
 
   hw_states_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
   hw_commands_.resize(info_.joints.size(), std::numeric_limits<double>::quiet_NaN());
@@ -89,10 +94,30 @@ hardware_interface::CallbackReturn RobotHardware::on_init(
 hardware_interface::CallbackReturn RobotHardware::on_configure(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(get_logger(), "Configuring ...please wait...");
-
+  // 检查 baud_rate_ 是否是合法的 itas109::BaudRate
+  switch (baud_rate_) {
+    case 110:
+    case 300:
+    case 600:
+    case 1200:
+    case 2400:
+    case 4800:
+    case 9600:
+    case 14400:
+    case 19200:
+    case 38400:
+    case 56000:
+    case 57600:
+    case 115200:
+    case 921600:
+      // 合法
+      break;
+    default:
+      RCLCPP_FATAL(get_logger(), "Invalid baud rate: %d", baud_rate_);
+      return hardware_interface::CallbackReturn::ERROR;
+  }
   // Initialize protocol
-  protocol_ = std::make_shared<fsuservo::FSUS_Protocol>(port_name_, itas109::BaudRate::BaudRate115200);
+  protocol_ = std::make_shared<fsuservo::FSUS_Protocol>(usb_port_, static_cast<itas109::BaudRate>(baud_rate_));
   
   // Initialize servos
   servos_.clear();
@@ -155,8 +180,6 @@ RobotHardware::export_command_interfaces()
 hardware_interface::CallbackReturn RobotHardware::on_activate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(get_logger(), "Activating ...please wait...");
-
   // command and state should be equal when starting
   for (uint i = 0; i < hw_states_.size(); i++)
   {
@@ -170,20 +193,9 @@ hardware_interface::CallbackReturn RobotHardware::on_activate(
 hardware_interface::CallbackReturn RobotHardware::on_deactivate(
   const rclcpp_lifecycle::State & /*previous_state*/)
 {
-  RCLCPP_INFO(get_logger(), "Deactivating ...please wait...");
-  // 关闭串口
-  if (protocol_) {
-    try {
-      protocol_->closePort();
-      RCLCPP_INFO(get_logger(), "Port closed successfully!");
-    } catch (const std::exception &e) {
-      RCLCPP_ERROR(get_logger(), "Failed to close port: %s", e.what());
-      return hardware_interface::CallbackReturn::ERROR;
-    }
-    protocol_.reset(); // 可选：释放协议对象
-  } else {
-    RCLCPP_WARN(get_logger(), "Protocol not initialized, no port to close.");
-  }
+  // exit USB port
+  libusb_exit(NULL);
+
   servos_.clear();
   RCLCPP_INFO(get_logger(), "Successfully deactivated!");
   return hardware_interface::CallbackReturn::SUCCESS;
@@ -197,29 +209,32 @@ hardware_interface::return_type RobotHardware::read(
   for (uint i = 0; i < hw_states_.size(); i++)
   {
     servos_[i]->queryAngle();
+    usleep(30000);
     // Read current angle from servo
     hw_states_[i] = servos_[i]->curAngle;
     ss << std::fixed << std::setprecision(2) << std::endl
        << "\t" << hw_states_[i] << " state for joint '" << info_.joints[i].name << "'";
   
   }
-  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 5000, "%s", ss.str().c_str());
+  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 1000, "%s", ss.str().c_str());
   return hardware_interface::return_type::OK;
 }
 
 hardware_interface::return_type RobotHardware::write(
   const rclcpp::Time & /*time*/, const rclcpp::Duration & /*period*/)
 {
-  std::stringstream ss;
+  // std::stringstream ss;
   for (uint i = 0; i < hw_commands_.size(); i++)
   {
     // Write command to servo
-    servos_[i]->setAngle(hw_commands_[i]); 
-    ss << std::fixed << std::setprecision(2) << std::endl
-      << "\t" << hw_commands_[i] << " command for joint '" << info_.joints[i].name << "'";
+    servos_[i]->setAngle(hw_commands_[i]);
+    usleep(20000);
+    // protocol_->delay_ms(20); 
+    // ss << std::fixed << std::setprecision(2) << std::endl
+    //   << "\t" << hw_commands_[i] << " command for joint '" << info_.joints[i].name << "'";
   }
-
-  RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 5000, "%s", ss.str().c_str());
+  sleep(1);
+  // RCLCPP_INFO_THROTTLE(get_logger(), *get_clock(), 5000, "%s", ss.str().c_str());
 
   return hardware_interface::return_type::OK;
 }

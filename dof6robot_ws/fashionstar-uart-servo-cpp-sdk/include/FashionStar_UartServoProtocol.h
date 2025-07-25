@@ -415,8 +415,6 @@ public:
     void sendSyncCommand(FSUS_SERVO_COUNT_T servo_count,FSUS_MODE_T mode, FSUS_Sync_T Syncsend[]);
     // 接收舵机同步命令下每个舵机的数据
     FSUS_STATUS recvQuerySyncCommand(FSUS_SERVO_COUNT_T servo_count, FSUS_ServoMonitor Syncmonitor[]);
-    // 关闭串口
-    void closePort(); 
 
     std::vector<FSUS_Sync_T> Syncsend; // 使用 std::vector 替代灵活数组
     std::vector<FSUS_ServoMonitor> Syncmonitor; // 使用 std::vector 替代灵活数组

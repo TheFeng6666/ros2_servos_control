@@ -1,87 +1,16 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro" name="dof6_robot">
+  <xacro:arg name="enable_joint1" default="true" />
+  <xacro:arg name="enable_joint2" default="true" />
+  <xacro:arg name="enable_joint3" default="true" />
 
   <!-- Import robot ros2_control description -->
+  <xacro:include filename = "$(find dof6robot_control)/description/dof6robot.description.xacro" />
+  <xacro:robot_description enable_joint1="$(arg enable_joint1)" enable_joint2="$(arg enable_joint2)" enable_joint3="$(arg enable_joint3)" />
+
+    <!-- Import robot ros2_control description -->
   <xacro:include filename = "$(find dof6robot_control)/ros2_control/dof6robot.ros2_control.xacro" />
-
-
-  <link name="base_link">
-    <visual>
-      <geometry>
-        <cylinder length="0.05" radius="0.08"/>
-      </geometry>
-      <material name="gray">
-        <color rgba="0.6 0.6 0.6 1"/>
-      </material>
-    </visual>
-  </link>
-
-  <!-- Link 1 -->
-  <link name="link1">
-    <visual>
-      <geometry>
-        <cylinder length="0.3" radius="0.04"/>
-      </geometry>
-      <origin xyz="0 0 0.15" rpy="0 0 0"/>
-      <material name="blue">
-        <color rgba="0.2 0.2 0.8 1"/>
-      </material>
-    </visual>
-  </link>
-
-  <!-- Link 2 -->
-  <!-- <link name="link2">
-    <visual>
-      <geometry>
-        <cylinder length="0.3" radius="0.04"/>
-      </geometry>
-      <origin xyz="0 0 0.15" rpy="0 0 0"/>
-      <material name="green">
-        <color rgba="0.2 0.8 0.2 1"/>
-      </material>
-    </visual>
-  </link> -->
-
-  <!-- Link 3 -->
-  <!-- <link name="link3">
-    <visual>
-      <geometry>
-        <cylinder length="0.3" radius="0.04"/>
-      </geometry>
-      <origin xyz="0 0 0.15" rpy="0 0 0"/>
-      <material name="red">
-        <color rgba="0.8 0.2 0.2 1"/>
-      </material>
-    </visual>
-  </link> -->
-
-  <!-- Joint 1: base_link to link1 -->
-  <joint name="joint1" type="revolute">
-    <parent link="base_link"/>
-    <child link="link1"/>
-    <origin xyz="0 0 0.05" rpy="0 0 0"/>
-    <axis xyz="0 0 1"/>
-    <limit lower="-1.57" upper="1.57" effort="10" velocity="2"/>
-  </joint>
-
-  <!-- Joint 2: link1 to link2 -->
-  <!-- <joint name="joint2" type="revolute">
-    <parent link="link1"/>
-    <child link="link2"/>
-    <origin xyz="0 0 0.3" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-1.57" upper="1.57" effort="10" velocity="2"/>
-  </joint> -->
-
-  <!-- Joint 3: link2 to link3 -->
-  <!-- <joint name="joint3" type="revolute">
-    <parent link="link2"/>
-    <child link="link3"/>
-    <origin xyz="0 0 0.3" rpy="0 0 0"/>
-    <axis xyz="0 1 0"/>
-    <limit lower="-1.57" upper="1.57" effort="10" velocity="2"/>
-  </joint> -->
-
   <xacro:robot_ros2_control name="robot" />
   
+  <link name="world"/>
 </robot>

@@ -9,7 +9,7 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
-# command: ros2 launch dof6robot_control dof6robot.launch.py
+# ros2 launch dof6robot_control dof6robot.launch.py
 
 def generate_launch_description():
     # Declare arguments
@@ -30,7 +30,10 @@ def generate_launch_description():
             PathJoinSubstitution([FindExecutable(name="xacro")]),
             " ",
             PathJoinSubstitution(
-                [FindPackageShare("dof6robot_control"), "urdf", "dof6robot.urdf.xacro"]
+                [FindPackageShare("dof6robot_control"), 
+                 "urdf", 
+                 "dof6robot.urdf.xacro"
+                ]
             ),
         ]
     )
@@ -41,13 +44,6 @@ def generate_launch_description():
             FindPackageShare("dof6robot_control"),
             "config",
             "dof6robot_controllers.yaml",
-        ]
-    )
-
-    hardware_config = PathJoinSubstitution([
-        FindPackageShare("dof6robot_control"),
-        "config", 
-        "dof6robot_hardware.yaml",
         ]
     )
     

@@ -16,8 +16,8 @@ forward_position_controller:
   ros__parameters:
     joints:
       - joint1
-      # - joint2
-      # - joint3
+      - joint2
+      - joint3
     interface_name: position
       # - velocity
 

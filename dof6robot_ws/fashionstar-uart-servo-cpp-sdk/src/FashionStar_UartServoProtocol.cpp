@@ -27,13 +27,6 @@ FSUS_Protocol::FSUS_Protocol(std::string port_name,  itas109::BaudRate baudrate)
 	}
 }
 
-void FSUS_Protocol::closePort(){
-    // 关闭串口
-    this->serial.close();
-    // 清空接收队列
-    std::queue<uint8_t> empty;
-}
-
  // 获取当前的时间戳，单位ms
 uint32_t FSUS_Protocol::millis(){
     // 延时函数定义

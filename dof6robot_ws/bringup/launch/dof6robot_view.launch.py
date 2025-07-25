@@ -8,7 +8,7 @@ from launch.substitutions import Command, FindExecutable, LaunchConfiguration, P
 from launch_ros.substitutions import FindPackageShare
 from launch_ros.parameter_descriptions import ParameterValue
 
-# command:ros2 launch dof6robot_control dof6robot_view.launch.py
+# ros2 launch dof6robot_control dof6robot_view.launch.py
 
 def generate_launch_description():
     # Declare arguments
@@ -21,7 +21,28 @@ def generate_launch_description():
         with this launch file.",
         )
     )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "enable_joint1",
+            default_value="true",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "enable_joint2",
+            default_value="true",
+        )
+    )
+    declared_arguments.append(
+        DeclareLaunchArgument(
+            "enable_joint3",
+            default_value="true",
+        )
+    )
     gui = LaunchConfiguration("gui")
+    enable_joint1 = LaunchConfiguration("enable_joint1")
+    enable_joint2 = LaunchConfiguration("enable_joint2")
+    enable_joint3 = LaunchConfiguration("enable_joint3")
 
     # Get URDF via xacro
     robot_description_content = Command(
@@ -31,9 +52,18 @@ def generate_launch_description():
             PathJoinSubstitution(
                 [FindPackageShare("dof6robot_control"), 
                 "urdf", 
-                "dof6robot.urdf.xacro"
+                "dof6robot.urdf.xacro",
                  ]
             ),
+            " ",
+            "enable_joint1:=",
+            enable_joint1,
+            " ",
+            "enable_joint2:=",
+            enable_joint2,
+            " ",
+            "enable_joint3:=",
+            enable_joint3,
         ]
     )
     robot_description = {"robot_description": ParameterValue(robot_description_content, value_type=str)}

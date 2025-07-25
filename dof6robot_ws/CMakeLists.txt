@@ -20,6 +20,16 @@ foreach(Dependency IN ITEMS ${THIS_PACKAGE_INCLUDE_DEPENDS})
   find_package(${Dependency} REQUIRED)
 endforeach()
 
+#find libsub
+include(FindPkgConfig)
+pkg_search_module(LIBUSB1 REQUIRED libusb-1.0)
+
+if(LIBUSB1_FOUND)
+  include_directories(SYSTEM ${LIBUSB1_INCLUDE_DIRS})
+else()
+  message( FATAL_ERROR "Failed to find libusb-1.0" )
+endif()
+
 add_library(
   ${PROJECT_NAME}
   SHARED
@@ -44,6 +54,7 @@ link_directories(${CMAKE_CURRENT_SOURCE_DIR}/fashionstar-uart-servo-cpp-sdk/buil
 # 正确链接库
 target_link_libraries(${PROJECT_NAME}
   fsuartservo
+  ${LIBUSB1_LIBRARIES}
 )
 
 pluginlib_export_plugin_description_file(hardware_interface dof6robot_hardware_plugin.xml)
@@ -61,7 +72,7 @@ install(DIRECTORY hardware/include/ fashionstar-uart-servo-cpp-sdk/include/
 
 
 install(
-  DIRECTORY description/urdf description/ros2_control
+  DIRECTORY description/urdf description/ros2_control description/description
   DESTINATION share/${PROJECT_NAME}
 )
 
